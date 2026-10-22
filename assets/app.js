@@ -202,6 +202,12 @@
     bar.innerHTML = `<button class="btn sm" data-fs>${icon.full}Full screen</button>${link(g.play, "Open in a new tab", "sm ghost", "ext")}`;
     stage.after(bar);
     const iframe = $("iframe", stage);
+    // the builds are single files of 0.2–22 MB, so say so while one downloads instead of showing a black box
+    const loading = document.createElement("div");
+    loading.className = "m-loading";
+    loading.innerHTML = `<span class="spin"></span><span>Loading the game${g.size ? ` · ${esc(g.size)}` : ""}…</span>`;
+    stage.appendChild(loading);
+    iframe.addEventListener("load", () => loading.remove(), { once: true });
     bar.querySelector("[data-fs]").addEventListener("click", () => {
       const req = iframe.requestFullscreen || iframe.webkitRequestFullscreen;
       if (req) req.call(iframe);
