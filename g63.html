@@ -1,0 +1,705 @@
+<!doctype html>
+<html lang="en">
+<head><script>(()=>{try{Object.defineProperty(Navigator.prototype,"language",{get:()=>"en-US",configurable:true});Object.defineProperty(Navigator.prototype,"languages",{get:()=>["en-US","en"],configurable:true})}catch(e){}const F=window.fetch;window.fetch=function(u,o){const s=typeof u==="string"?u:(u&&u.url)||"";if(s.startsWith("data:")){try{const i=s.indexOf(","),m=s.slice(5,i),d=s.slice(i+1);let b;if(/;base64$/i.test(m)){const t=atob(d);b=new Uint8Array(t.length);for(let k=0;k<t.length;k++)b[k]=t.charCodeAt(k)}else b=new TextEncoder().encode(decodeURIComponent(d));return Promise.resolve(new Response(b,{status:200,headers:{"Content-Type":m.split(";")[0]||"application/octet-stream"}}))}catch(e){return Promise.reject(e)}}return F.apply(this,arguments)}})()</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Lumen Lines</title>
+<style>
+  :root{color-scheme:dark;--bg:#080d1b;--panel:#111b30;--ink:#f1f3ff;--dim:#b0bad5;--accent:#a5ecff;--gold:#ffd59a;--line:#34435e}
+  *{box-sizing:border-box;margin:0;padding:0}
+  [hidden]{display:none!important}
+  html,body{height:100%;background:var(--bg);color:var(--ink);font-family:"Trebuchet MS","Segoe UI",sans-serif;overflow:hidden;touch-action:manipulation}
+  button{font:inherit;cursor:pointer;touch-action:manipulation;appearance:none;min-width:44px;min-height:44px;padding:8px 13px;border:1px solid var(--line);border-radius:9px;color:var(--ink);background:#142039;font-size:13px}
+  button:hover{background:#203452;border-color:#6e91b5}
+  button:active{background:#294663}
+  button:disabled{opacity:.42;cursor:default}
+  button:focus-visible,canvas:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+  button.go{background:var(--accent);color:#102434;border-color:var(--accent);font-weight:bold}
+  #wrap{height:100%;height:100dvh;display:flex;flex-direction:column;max-width:1100px;margin:auto;padding:env(safe-area-inset-top) max(10px,env(safe-area-inset-right)) env(safe-area-inset-bottom) max(10px,env(safe-area-inset-left));overflow:auto}
+  header{flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 6px 8px}
+  h1{font-family:"Palatino Linotype",Palatino,Georgia,serif;font-size:27px;font-weight:400;line-height:1.05;letter-spacing:-.5px}
+  #lvname{display:block;font-size:12px;color:var(--dim);margin-top:4px}
+  .stat{text-align:right;font-size:11px;color:var(--dim);white-space:nowrap}
+  .stat b{font-size:22px;color:var(--accent);margin-right:5px;font-weight:400}
+  #lit-count{display:block;margin-top:3px}
+  #instruction{flex:none;min-height:88px;border-block:1px solid var(--line);padding:9px 8px;background:linear-gradient(100deg,#19253a,#101b2e)}
+  #coach,#win{display:flex;align-items:center;gap:12px;min-height:68px}
+  .copy{flex:1;min-width:0;max-width:76ch}
+  #coach-title,#win h2{font-size:16px;font-weight:600;line-height:1.25;color:var(--gold)}
+  #coach-copy,#winsub{font-size:13px;line-height:1.4;margin-top:4px;color:var(--ink)}
+  .coach-actions{display:flex;gap:5px;flex:none;align-items:center}
+  #skip{padding:6px 8px;background:transparent;color:var(--dim);border-color:transparent}
+  #stage{flex:1 0 125px;position:relative;min-height:125px}
+  canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:manipulation;border-radius:12px}
+  #socket-panel{flex:none;display:flex;align-items:center;justify-content:center;gap:10px;min-height:49px}
+  .socket-caption{font-size:12px;color:var(--dim);line-height:1.2;max-width:66px}
+  #sockets{display:flex;align-items:center;justify-content:center;gap:5px}
+  #sockets button{width:44px;padding:4px 2px;border-color:#425b79;position:relative;display:flex;align-items:center;justify-content:center;gap:5px}
+  #sockets button.selected{border-color:var(--accent);background:#1f3e55}
+  #sockets button.guide-target{outline:2px solid var(--gold);outline-offset:1px}
+  .mirror-state{font-size:18px;line-height:1;color:var(--accent)}
+  #controls{flex:none;text-align:center;font-size:11px;color:var(--dim);line-height:1.4;padding:5px 2px;min-height:27px}
+  #hint{flex:none;min-height:19px;text-align:center;font-size:12px;color:var(--gold);line-height:1.35;padding:0 4px 3px}
+  footer{flex:none;display:flex;align-items:center;justify-content:center;gap:7px;padding:3px 0 6px}
+  footer button{min-width:64px}
+  .bottom-controls{flex:none}
+  .level-bar{flex:none;display:flex;align-items:center;gap:9px;border-top:1px solid #27344b;padding:5px 0 6px}
+  .level-bar>span{font-size:12px;color:var(--dim);flex:none;padding-left:5px}
+  #levels{display:flex;gap:5px;overflow-x:auto;padding:3px;scrollbar-width:thin;scrollbar-color:#435773 transparent;overscroll-behavior-inline:contain}
+  #levels button{width:44px;flex:0 0 44px;padding:4px;position:relative;background:transparent;color:var(--dim)}
+  #levels button.done:after{content:'✓';position:absolute;font-size:9px;right:3px;top:2px;color:var(--accent)}
+  #levels button.now{background:#244158;border-color:var(--accent);color:#fff}
+  #more-toggle{display:none}
+  #more-panel{position:fixed;z-index:20;left:12px;right:12px;bottom:calc(61px + env(safe-area-inset-bottom));max-height:60vh;max-height:60dvh;overflow:auto;padding:10px 14px 14px;background:#14233b;border:1px solid #6084a7;border-radius:15px;box-shadow:0 8px 35px #000b}
+  .more-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .more-head h2{font-size:16px;font-weight:600;color:var(--accent)}
+  #more-panel p{font-size:12px;line-height:1.4;color:var(--dim);margin:5px 0 8px}
+  #more-sockets{display:flex;gap:5px;flex-wrap:wrap}
+  #more-sockets button{width:44px;padding:4px 2px;display:flex;align-items:center;justify-content:center;gap:5px}
+  #more-sockets button.selected{border-color:var(--accent);background:#1f3e55}
+  #more-sockets button.guide-target{outline:2px solid var(--gold);outline-offset:1px}
+  #more-level-label{font-size:12px;color:var(--dim);margin:13px 0 6px}
+  #more-levels{display:flex;gap:5px;overflow-x:auto;padding:3px;scrollbar-width:thin;overscroll-behavior-inline:contain}
+  #more-levels button{width:44px;flex:0 0 44px;padding:4px;background:transparent;position:relative}
+  #more-levels button.now{background:#244158;border-color:var(--accent)}
+  #more-levels button.done:after{content:'✓';position:absolute;right:3px;top:2px;font-size:9px;color:var(--accent)}
+  .sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+  dialog{width:min(570px,calc(100% - 24px));max-height:calc(100% - 24px);max-height:calc(100dvh - 24px);margin:auto;padding:22px;border:1px solid #567291;border-radius:18px;background:#111d32;color:var(--ink);overflow:auto;box-shadow:0 20px 90px #0009}
+  dialog::backdrop{background:#030815d9}
+  .help-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .help-head h2{font-family:"Palatino Linotype",Georgia,serif;font-size:26px;font-weight:400}
+  dialog p{font-size:14px;line-height:1.5;color:var(--dim);margin:12px 0}
+  .legend{display:grid;grid-template-columns:1fr 1fr;gap:15px 18px;margin:22px 0}
+  .legend div{display:grid;grid-template-columns:34px 1fr;gap:8px;align-items:start}
+  .legend svg{width:32px;height:32px}
+  .legend b{display:block;font-size:13px;color:var(--ink);margin-bottom:3px}
+  .legend span{font-size:12px;color:var(--dim);line-height:1.4}
+  .help-footer{display:flex;gap:8px;flex-wrap:wrap;margin-top:17px}
+  kbd{font:inherit;color:var(--ink);border:1px solid #4b5d78;border-radius:3px;padding:1px 4px;white-space:nowrap}
+  @media(max-width:440px){h1{font-size:25px}#coach,#win{gap:6px}#coach-title{font-size:15px}#coach-copy,#winsub{font-size:12px}.coach-actions{flex-direction:column;gap:0}#coach-action{max-width:93px;padding:5px 8px;font-size:12px}#skip{min-height:44px;min-width:44px}#instruction{min-height:102px;padding:8px 6px}#socket-panel{gap:5px}.socket-caption{display:none}#sockets{gap:7px}#controls{font-size:10.5px}.legend{grid-template-columns:1fr}dialog{padding:17px}}
+  @media(max-width:440px){
+    #socket-panel,#controls,.level-bar,#prev{display:none}
+    #more-toggle{display:block;min-width:88px;padding-inline:9px;font-size:12px}
+    #hint:empty{display:none}
+    #instruction:not(.lesson){min-height:0;padding:7px 8px}
+    #instruction:not(.lesson) #coach{min-height:25px}
+    #instruction:not(.lesson) #coach-title{display:none}
+    #instruction:not(.lesson) #coach-copy{margin:0;line-height:1.4}
+    #instruction.lesson #coach-copy{min-height:68px}
+    footer{justify-content:space-between;gap:5px;padding-top:5px;padding-bottom:7px}
+    footer button{padding-inline:10px}
+  }
+  @media(max-height:540px) and (min-width:441px){header{padding-top:5px;padding-bottom:5px}h1{font-size:23px}#instruction{min-height:78px;padding-block:5px}#coach,#win{min-height:65px}#controls{padding-block:1px;min-height:17px}footer{padding-block:2px}.level-bar{padding-block:2px}#hint{min-height:17px;font-size:11px}}
+  @media(max-height:540px) and (min-width:560px){.bottom-controls{display:flex;gap:12px;align-items:center}.bottom-controls footer{flex:none}.bottom-controls .level-bar{flex:1;min-width:0;border-top:0}.bottom-controls .level-bar>span{display:none}}
+  @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <header>
+    <div><h1>Lumen Lines</h1><span id="lvname">First light</span></div>
+    <div class="stat"><b id="pool">1</b> mirrors left<span id="lit-count">0 / 1 crystals lit</span></div>
+  </header>
+  <div id="instruction">
+    <section id="coach" aria-label="Puzzle guidance">
+      <div class="copy" aria-live="polite" aria-atomic="true"><h2 id="coach-title">Follow the light</h2><p id="coach-copy"></p></div>
+      <div class="coach-actions"><button id="coach-action" class="go">Follow beam</button><button id="skip">Skip lesson</button></div>
+    </section>
+    <section id="win" aria-label="Level complete" hidden inert>
+      <div class="copy"><h2>Beautifully connected.</h2><p id="winsub"></p></div><button class="go" id="next" disabled>Next level</button>
+    </section>
+  </div>
+  <div id="stage">
+    <canvas id="c" tabindex="0" role="group" aria-label="Optics puzzle board" aria-describedby="controls board-description">Use the large numbered socket controls to place and turn mirrors. On phones, find them in More controls.</canvas>
+  </div>
+  <div id="socket-panel"><span class="socket-caption">Turn a socket</span><div id="sockets" role="group" aria-label="Socket controls"></div></div>
+  <p id="controls">Tap a socket: place / · flip \ · remove. Arrow keys choose; Enter turns.</p>
+  <p id="hint" role="status" aria-live="polite"></p>
+  <p id="board-description" class="sr-only"></p>
+  <div class="bottom-controls"><footer>
+    <button id="prev" aria-label="Previous level">Previous</button>
+    <button id="reset">Reset</button>
+    <button id="help">Help</button>
+    <button id="sound">Sound: on</button>
+    <button id="more-toggle" aria-expanded="false" aria-controls="more-panel">More controls</button>
+  </footer>
+  <nav class="level-bar" aria-label="Choose a level"><span>Levels</span><div id="levels"></div></nav>
+  </div>
+</div>
+<section id="more-panel" role="region" aria-labelledby="more-title" hidden>
+  <div class="more-head"><h2 id="more-title">More controls</h2><button id="close-more" aria-label="Close more controls">Close</button></div>
+  <p>Tap a numbered control to place, flip, or remove its mirror. The same number is marked on the board.</p>
+  <div id="more-sockets" role="group" aria-label="Large socket controls"></div>
+  <h3 id="more-level-label">Choose a level</h3>
+  <div id="more-levels" role="group" aria-labelledby="more-level-label"></div>
+</section>
+<dialog id="help-dialog" aria-labelledby="help-title">
+  <div class="help-head"><h2 id="help-title">A little light goes a long way.</h2><button id="close-help" aria-label="Close help">Close</button></div>
+  <p>Light every crystal. Tap a numbered socket to place a mirror, tap again to turn it, and once more to remove it. Large numbered controls do the same thing. On phones, open More controls to find them and choose a level.</p>
+  <div class="legend">
+    <div><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="2" y="8" width="17" height="16" rx="4" fill="#576b91"/><path d="M16 16H31" stroke="#b4f3ff" stroke-width="3"/><circle cx="17" cy="16" r="4" fill="#fff"/></svg><span><b>Lamp</b>Sends a straight beam. Its direction stays fixed.</span></div>
+    <div><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="11" fill="none" stroke="#b4f3ff" stroke-width="2" stroke-dasharray="3 3"/><text x="16" y="20" text-anchor="middle" fill="#fff" font-size="12">1</text></svg><span><b>Socket</b>The only place for your mirrors. Numbers match the large socket controls.</span></div>
+    <div><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2 28 9 28 23 16 30 4 23 4 9Z" fill="#84dff3" stroke="#fff"/><path d="M16 2V30M4 9 28 23M28 9 4 23" stroke="#fff" opacity=".7"/></svg><span><b>Crystal</b>Glows when light reaches it. A crystal absorbs the beam.</span></div>
+    <div><svg viewBox="0 0 32 32" aria-hidden="true"><path d="m6 26 20-20" stroke="#aab3c8" stroke-width="5"/><circle cx="8" cy="24" r="2" fill="#fff"/><circle cx="24" cy="8" r="2" fill="#fff"/></svg><span><b>Fixed mirror</b>Silver, with two pins. Bounces light, but cannot be turned.</span></div>
+    <div><svg viewBox="0 0 32 32" aria-hidden="true"><path d="m16 2 14 14-14 14L2 16Z" fill="#c4b4f8" stroke="#fff"/><path d="M2 16h14V2M16 16v14" fill="none" stroke="#fff" stroke-width="2"/></svg><span><b>Prism</b>Splits an incoming beam into two perpendicular branches.</span></div>
+    <div><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="3" y="3" width="26" height="26" rx="4" fill="#343e5c" stroke="#8692b2"/><path d="m7 7 18 18M7 25 25 7" stroke="#8692b2"/></svg><span><b>Wall</b>Stops light. Look for another route around it.</span></div>
+  </div>
+  <p><kbd>←</kbd> / <kbd>↑</kbd> choose the previous numbered socket; <kbd>→</kbd> / <kbd>↓</kbd> choose the next. <kbd>Enter</kbd> or <kbd>Space</kbd> turns it. <kbd>R</kbd> resets. <kbd>Tab</kbd> reaches every button. <kbd>Esc</kbd> closes More controls.</p>
+  <p>There is no timer. Reset is always free. Every puzzle can be solved with the mirrors provided.</p>
+  <div class="help-footer"><button id="replay-tutorial" class="go">Replay guided lesson</button><button id="back-to-game">Back to puzzle</button></div>
+</dialog>
+<script>
+(() => {
+// ───────────────────────── levels ─────────────────────────
+// . empty  # wall  > < ^ v emitter  O crystal  / \ fixed mirror  * splitter  + socket
+const LEVELS = [
+  {name:'First light', pool:1, hue:190, hint:'Tap a socket to place a mirror. Tap again to flip it.', map:[
+    '........',
+    '.>....+.',
+    '........',
+    '......O.',
+    '........']},
+  {name:'Around the corner', pool:2, hue:205, hint:'Two bounces. A mirror reflects from either side.', map:[
+    '.......',
+    '.>...+.',
+    '.......',
+    '.O...+.',
+    '.......']},
+  {name:'The prism', pool:2, hue:280, hint:'A prism splits light to both sides.', map:[
+    '.........',
+    '.O...+...',
+    '.........',
+    '.>...*...',
+    '.........',
+    '.....+..O',
+    '.........']},
+  {name:'The wall', pool:2, hue:35, hint:'Not every socket is the right one.', map:[
+    '.........',
+    '.>.+..+..',
+    '.........',
+    '.#####...',
+    '.........',
+    '.O.+..+..',
+    '.........']},
+  {name:'Old glass', pool:2, hue:150, hint:'Silver mirrors with two pins are fixed. Use them.', map:[
+    '..........',
+    '.>......\\.',
+    '..........',
+    '.+..+...+.',
+    '..........',
+    '.O..../...',
+    '..........']},
+  {name:'Two suns', pool:1, hue:330, hint:'Sometimes the best mirror is no mirror.', map:[
+    '.........v.',
+    '.O...+...+.',
+    '...........',
+    '.>...*...O.',
+    '...........',
+    '.....O.....']},
+  {name:'Detour', pool:3, hue:55, hint:'Three mirrors, one long road.', map:[
+    '...........',
+    '.>....+..#.',
+    '.....#.....',
+    '.+....+..+.',
+    '.........#.',
+    '.O.#..+..+.',
+    '...........']},
+  {name:'Shared glass', pool:3, hue:240, hint:'One mirror can serve two beams.', map:[
+    '..........',
+    '.>...+..+.',
+    '..........',
+    '..O..+..O.',
+    '..........',
+    '.....^....']},
+  {name:'Hall of mirrors', pool:1, hue:10, hint:'Follow the light before you touch anything.', map:[
+    '............',
+    '.>...\\..+.\\.',
+    '............',
+    './...*....+.',
+    '............',
+    '.\\...O.+..O.',
+    '............']},
+  {name:'Constellation', pool:6, hue:200, hint:'Everything you have learned, at once.', map:[
+    '.............',
+    '.>....+.....\\',
+    '.............',
+    '.+....*....+.',
+    '.............',
+    '.O....+..+.O.',
+    '.............',
+    '......O.#+.<.']},
+];
+
+// ───────────────────────── state ─────────────────────────
+const DIRS = {'>':[1,0],'<':[-1,0],'^':[0,-1],'v':[0,1]};
+const $ = s => document.querySelector(s);
+const cv = $('#c'), ctx = cv.getContext('2d');
+let li = 0, grid, cols, rows, placed, solved = false, progress = [];
+let W = 0, H = 0, cell = 0, ox = 0, oy = 0, dpr = 1;
+let beams = [], lit = new Set(), sparks = [], dust = [];
+let t0 = performance.now(), lastFrame = t0, hintTimer = 0, winTimer = 0, shake = 0, revision = 0;
+let sockets = [], selected = 0, tutorialStep = -1, keyboardFocus = false, compactUI = false;
+const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const readStore = key => { try { return localStorage.getItem(key); } catch (_) { return null; } };
+const saveStore = (key, value) => { try { localStorage.setItem(key, value); } catch (_) {} };
+let soundOn = readStore('lumen-lines-sound') !== '0';
+let lessonSeen = readStore('lumen-lines-lesson-v2') === '1';
+try {
+  const saved = JSON.parse(readStore('lumen-lines') || '[]');
+  if (Array.isArray(saved)) progress = [...new Set(saved.filter(n => Number.isInteger(n) && n >= 0 && n < LEVELS.length))];
+} catch (_) {}
+const LESSON = [
+  {title:'1 / 4 · Follow the light', text:'The lamp sends a straight beam. Tap the glowing lamp to follow it, or choose Follow beam.', action:'Follow beam', target:[1,1]},
+  {title:'2 / 4 · Meet your destination', text:'This dark crystal needs light. Tap the highlighted crystal, or choose Find socket, to plan a turn.', action:'Find socket', target:[6,3]},
+  // {up}/{down} resolve to left/right when the board is shown sideways on a portrait phone (see updateGuide).
+  {title:'3 / 4 · Place your mirror', text:'Tap the gold-ringed socket {control}. Your first mirror will send the beam {up}.', target:[6,1]},
+  {title:'4 / 4 · Turn toward the crystal', text:'See the beam go {up}? Tap the same mirror again. It flips and sends light {down} into the crystal.', target:[6,1]}
+];
+
+function cancelWin() {
+  revision++;
+  clearTimeout(winTimer); winTimer = 0;
+  $('#win').hidden = true; $('#win').inert = true; $('#next').disabled = true;
+  $('#coach').hidden = false;
+}
+function load(i, options = {}) {
+  closeMore(false);
+  cancelWin(); clearTimeout(hintTimer); $('#hint').textContent = '';
+  li = Math.max(0, Math.min(LEVELS.length - 1, Number.isInteger(i) ? i : 0));
+  const L = LEVELS[li];
+  grid = L.map.map(r => r.split(''));
+  rows = grid.length; cols = grid[0].length;
+  placed = {}; solved = false; sparks = []; selected = 0; sockets = [];
+  tutorialStep = options.tutorial && li === 0 ? 0 : -1;
+  for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) if (grid[y][x] === '+') sockets.push([x,y]);
+  $('#lvname').textContent = `Level ${li + 1}: ${L.name}`;
+  $('#prev').disabled = li === 0;
+  updateGuide(); dots(); buildSocketControls(); describeBoard(); trace(); resize();
+}
+function usedMirrors() { return Object.keys(placed).length; }
+function poolLeft() { return LEVELS[li].pool - usedMirrors(); }
+function at(x, y) { if (x < 0 || y < 0 || x >= cols || y >= rows) return null; const k = x + ',' + y; return placed[k] || grid[y][x]; }
+
+// ───────────────────────── beam tracing ─────────────────────────
+function trace() {
+  beams = []; lit = new Set();
+  const seen = new Set();
+  const stack = [];
+  for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
+    const ch = grid[y][x]; if (DIRS[ch]) stack.push({x, y, d: DIRS[ch], src: true});
+  }
+  while (stack.length) {
+    let {x, y, d} = stack.pop();
+    let pts = [[x + .5, y + .5]];
+    for (;;) {
+      x += d[0]; y += d[1];
+      const key = x + ',' + y + ',' + d;
+      if (seen.has(key)) { pts.push([x + .5, y + .5]); break; }
+      seen.add(key);
+      const ch = at(x, y);
+      if (ch === null) { pts.push([x + .5 - d[0] * .5, y + .5 - d[1] * .5]); break; }
+      if (ch === '#' || DIRS[ch]) { pts.push([x + .5 - d[0] * .5, y + .5 - d[1] * .5]); break; }
+      if (ch === 'O') { pts.push([x + .5, y + .5]); lit.add(x + ',' + y); break; }
+      if (ch === '/') { pts.push([x + .5, y + .5]); d = [-d[1], -d[0]]; continue; }
+      if (ch === '\\') { pts.push([x + .5, y + .5]); d = [d[1], d[0]]; continue; }
+      if (ch === '*') {
+        pts.push([x + .5, y + .5]);
+        stack.push({x, y, d: [-d[1], d[0]]}); stack.push({x, y, d: [d[1], -d[0]]});
+        break;
+      }
+    }
+    beams.push(pts);
+  }
+  const targets = [];
+  for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) if (grid[y][x] === 'O') targets.push(x + ',' + y);
+  $('#pool').textContent = poolLeft();
+  $('#lit-count').textContent = `${lit.size} / ${targets.length} crystals lit`;
+  if (!solved && targets.length && targets.every(k => lit.has(k))) win();
+  syncSocketControls();
+}
+
+function win() {
+  solved = true;
+  closeMore(false);
+  if (!progress.includes(li)) { progress.push(li); saveStore('lumen-lines', JSON.stringify(progress)); }
+  if (tutorialStep >= 0) { lessonSeen = true; tutorialStep = -1; saveStore('lumen-lines-lesson-v2', '1'); }
+  updateGuide();
+  dots();
+  for (const k of lit) { const [x, y] = k.split(',').map(Number); burst(x + .5, y + .5, 34); }
+  chord();
+  $('#winsub').textContent = li === LEVELS.length - 1 ? 'All ten constellations are glowing. Make another journey?' : li === 0 ? 'You did it! On the next puzzle, a third tap removes a mirror. Reset clears the board.' : `${LEVELS[li].name} is complete. Take your light a little further.`;
+  $('#next').textContent = li === LEVELS.length - 1 ? 'Play again' : 'Next level';
+  const token = revision;
+  clearTimeout(winTimer);
+  winTimer = setTimeout(() => {
+    if (token !== revision || !solved) return;
+    $('#coach').hidden = true; $('#win').hidden = false; $('#win').inert = false; $('#next').disabled = false;
+    showHint('Every crystal is lit. Next level is ready.', 3000);
+    if (!$('#help-dialog').open) $('#next').focus({preventScroll:true});
+  }, reducedMotion ? 100 : 600);
+}
+
+// ───────────────────────── input ─────────────────────────
+function tap(px, py) {
+  if (solved || W <= 24 || H <= 40 || cell < 1) return;
+  if (tutorialStep >= 0 && tutorialStep < 2) {
+    const [x,y] = LESSON[tutorialStep].target;
+    const [tx, ty] = toScreen(x + .5, y + .5);
+    if (Math.hypot(px - tx, py - ty) <= Math.max(26, cell * .6)) advanceLesson();
+    else showHint('Follow the gold marker, or use the lesson button above.', 2400);
+    return;
+  }
+  // A generous hit circle selects the nearest socket; matching 44px buttons remain available below.
+  let nearest = -1, distance = Infinity;
+  sockets.forEach(([x,y], i) => {
+    const [sx, sy] = toScreen(x + .5, y + .5);
+    const d = Math.hypot(px - sx, py - sy);
+    if (d < distance) { distance = d; nearest = i; }
+  });
+  if (distance <= Math.max(22, cell * .5)) turnSocket(nearest);
+}
+function turnSocket(index) {
+  if (solved || !sockets[index] || (tutorialStep >= 0 && tutorialStep < 2)) return;
+  selected = index;
+  const [x,y] = sockets[index];
+  const k = x + ',' + y, cur = placed[k];
+  if (!cur) {
+    if (poolLeft() <= 0) { showHint('No mirrors left. Tap a placed mirror to flip it, then tap once more to remove it.', 3800); shake = reducedMotion ? 0 : 1; tone(140, .1, 'triangle', .06); syncSocketControls(); return; }
+    placed[k] = '/'; tone(520, .07, 'sine', .08);
+  } else if (cur === '/') { placed[k] = '\\'; tone(640, .07, 'sine', .08); }
+  else { delete placed[k]; tone(380, .09, 'sine', .06); }
+  if (tutorialStep === 2) { tutorialStep = 3; updateGuide(); }
+  burst(x + .5, y + .5, 8, true);
+  trace();
+}
+function resetPuzzle() {
+  cancelWin(); placed = {}; solved = false; sparks = []; clearTimeout(hintTimer); $('#hint').textContent = '';
+  if (tutorialStep >= 2) tutorialStep = 2;
+  updateGuide(); trace(); tone(300, .12, 'sine', .05);
+}
+function advanceLesson() {
+  if (tutorialStep < 0 || tutorialStep >= 2) return;
+  tutorialStep++; updateGuide(); syncSocketControls(); cv.focus({preventScroll:true});
+}
+function updateGuide() {
+  const guided = tutorialStep >= 0;
+  $('#instruction').classList.toggle('lesson', guided);
+  $('#coach-title').textContent = guided ? LESSON[tutorialStep].title : solved ? 'Every crystal is glowing.' : 'Light every crystal';
+  const oriented = s => s.replace(/\{up\}/g, flip ? 'to the left' : 'upward').replace(/\{down\}/g, flip ? 'to the right' : 'down').replace(/\{control\}/g, compactUI ? 'or find control 1 in More controls' : 'or numbered control 1 below');
+  $('#coach-copy').textContent = guided ? oriented(LESSON[tutorialStep].text) : solved ? 'The light found its way. Your next puzzle will be ready in a moment.' : LEVELS[li].hint;
+  $('#coach-action').hidden = !guided || tutorialStep >= 2;
+  $('#coach-action').textContent = guided ? LESSON[tutorialStep].action || 'Continue' : 'Continue';
+  $('#skip').hidden = !guided;
+  $('#controls').textContent = guided && tutorialStep < 2 ? 'Tap the gold marker. Keyboard: focus the board and press Enter.' : 'Tap: place / · flip \\ · remove. Left/up: previous socket; right/down: next. Enter turns.';
+  if (document.activeElement === $('#coach-action') && $('#coach-action').hidden) cv.focus({preventScroll:true});
+}
+function buildSocketControls() {
+  [$('#sockets'), $('#more-sockets')].forEach(group => {
+    group.replaceChildren();
+    sockets.forEach((point, index) => {
+      const b = document.createElement('button'); b.type = 'button';
+      b.innerHTML = `<span>${index + 1}</span><span class="mirror-state" aria-hidden="true">·</span>`;
+      b.onclick = () => turnSocket(index);
+      b.onfocus = () => { selected = index; keyboardFocus = true; syncSocketControls(); };
+      b.onkeydown = e => handleBoardKey(e, group);
+      group.appendChild(b);
+    });
+  });
+  syncSocketControls();
+}
+function displayCell(x,y) { return flip ? [y,x] : [x,y]; }
+function syncSocketControls() {
+  [$('#sockets'), $('#more-sockets')].forEach(group => [...group.children].forEach((b,index) => {
+    const [x,y] = sockets[index], mirror = placed[x + ',' + y];
+    const [column,row] = displayCell(x,y);
+    b.querySelector('.mirror-state').textContent = mirror || '·';
+    b.disabled = solved || (tutorialStep >= 0 && tutorialStep < 2);
+    b.classList.toggle('selected', index === selected);
+    b.classList.toggle('guide-target', tutorialStep >= 2 && index === 0);
+    const state = mirror === '/' ? 'slash mirror; turn to backslash' : mirror ? 'backslash mirror; remove mirror' : 'empty; place slash mirror';
+    b.setAttribute('aria-label', `Socket ${index + 1}, column ${column + 1}, row ${row + 1}: ${state}`);
+  }));
+  cv.setAttribute('aria-label', `Level ${li + 1}, ${LEVELS[li].name}. ${lit.size} crystals lit. Socket ${selected + 1} selected. Left or up chooses the previous numbered socket; right or down chooses the next. Enter turns.`);
+}
+function describeBoard() {
+  const info = [`Board has ${flip ? rows : cols} columns and ${flip ? cols : rows} rows.`];
+  const directions = flip ? {'>':'down','<':'up','^':'left','v':'right'} : {'>':'right','<':'left','^':'up','v':'down'};
+  for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
+    const tile = grid[y][x];
+    const name = DIRS[tile] ? `Lamp facing ${directions[tile]}` : tile === 'O' ? 'Crystal' : tile === '#' ? 'Wall' : tile === '*' ? 'Prism' : tile === '/' ? 'Fixed slash mirror' : tile === '\\' ? 'Fixed backslash mirror' : '';
+    const [column,row] = displayCell(x,y);
+    if (name) info.push(`${name} at column ${column + 1}, row ${row + 1}.`);
+  }
+  $('#board-description').textContent = info.join(' ');
+}
+function handleBoardKey(e, fromButtons = false) {
+  if (e.altKey || e.ctrlKey || e.metaKey) return;
+  if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)) {
+    e.preventDefault(); keyboardFocus = true;
+    const delta = e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 1;
+    selected = (selected + delta + sockets.length) % sockets.length;
+    syncSocketControls();
+    if (fromButtons) (fromButtons === true ? $('#sockets') : fromButtons).children[selected].focus({preventScroll:true});
+  } else if (!fromButtons && (e.key === 'Enter' || e.key === ' ')) {
+    e.preventDefault(); if (e.repeat) return;
+    if (tutorialStep >= 0 && tutorialStep < 2) advanceLesson(); else turnSocket(selected);
+  }
+}
+cv.addEventListener('pointerdown', e => {
+  if (e.button !== undefined && e.button !== 0) return;
+  e.preventDefault(); keyboardFocus = false; cv.focus({preventScroll:true}); keyboardFocus = false;
+  const r = cv.getBoundingClientRect(); tap(e.clientX - r.left, e.clientY - r.top);
+});
+cv.addEventListener('keydown', e => handleBoardKey(e));
+cv.addEventListener('focus', () => { keyboardFocus = true; });
+$('#reset').onclick = () => { closeMore(false); resetPuzzle(); cv.focus({preventScroll:true}); };
+$('#prev').onclick = () => { load(li - 1); cv.focus({preventScroll:true}); };
+$('#next').onclick = () => { if (!solved || $('#win').hidden) return; load(li === LEVELS.length - 1 ? 0 : li + 1); cv.focus({preventScroll:true}); };
+function soundLabel() { $('#sound').textContent = 'Sound: ' + (soundOn ? 'on' : 'off'); $('#sound').setAttribute('aria-pressed', String(soundOn)); }
+$('#sound').onclick = () => { soundOn = !soundOn; soundLabel(); saveStore('lumen-lines-sound', soundOn ? '1' : '0'); };
+$('#coach-action').onclick = advanceLesson;
+$('#skip').onclick = () => { tutorialStep = -1; lessonSeen = true; saveStore('lumen-lines-lesson-v2','1'); updateGuide(); syncSocketControls(); cv.focus({preventScroll:true}); };
+function closeMore(restoreFocus = true) {
+  const wasOpen = !$('#more-panel').hidden;
+  $('#more-panel').hidden = true; $('#more-toggle').setAttribute('aria-expanded','false');
+  if (wasOpen && restoreFocus) $('#more-toggle').focus({preventScroll:true});
+}
+$('#more-toggle').onclick = () => {
+  if (!$('#more-panel').hidden) { closeMore(); return; }
+  $('#more-panel').hidden = false; $('#more-toggle').setAttribute('aria-expanded','true');
+  const first = [...$('#more-sockets').children].find(b => !b.disabled);
+  (first || $('#close-more')).focus({preventScroll:true});
+  const current = $('#more-levels').children[li];
+  if (current) $('#more-levels').scrollLeft = Math.max(0, current.offsetLeft - $('#more-levels').offsetLeft - $('#more-levels').clientWidth / 2 + 22);
+};
+$('#close-more').onclick = () => closeMore();
+$('#help').onclick = () => { closeMore(false); $('#help-dialog').showModal(); $('#close-help').focus(); };
+$('#close-help').onclick = $('#back-to-game').onclick = () => { $('#help-dialog').close(); $('#help').focus({preventScroll:true}); };
+$('#replay-tutorial').onclick = () => { $('#help-dialog').close(); load(0, {tutorial:true}); cv.focus({preventScroll:true}); };
+window.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && !$('#more-panel').hidden) { e.preventDefault(); closeMore(); return; }
+  if (e.altKey || e.ctrlKey || e.metaKey || e.repeat || $('#help-dialog').open) return;
+  if (e.key.toLowerCase() === 'r') { e.preventDefault(); $('#reset').click(); }
+  if (e.key.toLowerCase() === 'n' && solved && !$('#win').hidden) { e.preventDefault(); $('#next').click(); }
+});
+function dots() {
+  [$('#levels'), $('#more-levels')].forEach(list => {
+    list.replaceChildren();
+    LEVELS.forEach((level,index) => {
+    const b = document.createElement('button'); b.type = 'button'; b.textContent = String(index + 1);
+    b.classList.toggle('done', progress.includes(index)); b.classList.toggle('now', index === li);
+    b.setAttribute('aria-label', `Level ${index + 1}: ${level.name}${progress.includes(index) ? ', completed' : ''}`);
+    if (index === li) b.setAttribute('aria-current', 'step');
+    b.onclick = () => { load(index); cv.focus({preventScroll:true}); };
+    list.appendChild(b);
+    });
+    const current = list.children[li];
+    if (current) list.scrollLeft = Math.max(0, current.offsetLeft - list.offsetLeft - list.clientWidth / 2 + 22);
+  });
+}
+function showHint(t, ms = 3000) { $('#hint').textContent = t; clearTimeout(hintTimer); hintTimer = setTimeout(() => { $('#hint').textContent = ''; }, ms); }
+
+// ───────────────────────── audio ─────────────────────────
+let ac = null;
+function audio() { if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (_) {} } if (ac && ac.state === 'suspended') { const resume = ac.resume(); if (resume && resume.catch) resume.catch(() => {}); } return ac; }
+function tone(f, dur, type = 'sine', vol = .1, when = 0) {
+  if (!soundOn) return; const a = audio(); if (!a) return;
+  const o = a.createOscillator(), g = a.createGain(); o.type = type; o.frequency.value = f;
+  const t = a.currentTime + when; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .01); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+  o.connect(g).connect(a.destination); o.start(t); o.stop(t + dur + .05);
+}
+function chord() { [523, 659, 784, 1046].forEach((f, i) => tone(f, .9, 'sine', .07, i * .09)); }
+
+// ───────────────────────── particles ─────────────────────────
+function burst(x, y, n, small) {
+  if (reducedMotion) return;
+  for (let i = 0; i < n; i++) { const a = Math.random() * Math.PI * 2, s = (small ? .4 : 1.2) * (.5 + Math.random()); sparks.push({x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 1, r: small ? 1.5 : 2 + Math.random() * 2}); }
+}
+for (let i = 0; i < 36; i++) dust.push({x: Math.random(), y: Math.random(), s: Math.random() * 1.1 + .3, v: Math.random() * .000035 + .000015, p: Math.random() * 7});
+
+// ───────────────────────── rendering ─────────────────────────
+function resize() {
+  const st = $('#stage'); dpr = Math.min(2, window.devicePixelRatio || 1);
+  W = Math.max(0, st.clientWidth || 0); H = Math.max(0, st.clientHeight || 0);
+  const width = Math.round(W * dpr), height = Math.round(H * dpr);
+  if (cv.width !== width) cv.width = width;
+  if (cv.height !== height) cv.height = height;
+  const wasFlipped = flip, wasCompact = compactUI;
+  compactUI = !!(window.matchMedia && window.matchMedia('(max-width:440px)').matches);
+  const normalCell = Math.max(1, Math.floor(Math.min(96, (W - 24) / (cols || 1), (H - 40) / (rows || 1))));
+  const transposedCell = Math.max(1, Math.floor(Math.min(96, (W - 24) / (rows || 1), (H - 40) / (cols || 1))));
+  flip = transposedCell > normalCell;
+  const bc = flip ? rows : cols, br = flip ? cols : rows;
+  cell = flip ? transposedCell : normalCell;
+  ox = Math.floor((W - cell * bc) / 2); oy = Math.floor((H - cell * br) / 2);
+  if (grid && (flip !== wasFlipped || compactUI !== wasCompact)) { updateGuide(); describeBoard(); syncSocketControls(); }
+  if (!compactUI && !$('#more-panel').hidden) { closeMore(false); cv.focus({preventScroll:true}); }
+}
+let flip = false;
+// logical board coordinates (in cells) -> screen pixels, honouring the portrait transpose
+const toScreen = (x, y) => flip ? [ox + y * cell, oy + x * cell] : [ox + x * cell, oy + y * cell];
+window.addEventListener('resize', resize);
+if (typeof ResizeObserver !== 'undefined') new ResizeObserver(resize).observe($('#stage'));
+const hsl = (h, s, l, a = 1) => `hsla(${h},${s}%,${l}%,${a})`;
+
+function draw(now) {
+  requestAnimationFrame(draw);
+  if (W <= 24 || H <= 40) { resize(); lastFrame = now; return; }
+  const dt = Math.min(.05, Math.max(0, (now - lastFrame) / 1000)); lastFrame = now;
+  const t = reducedMotion ? 0 : (now - t0) / 1000, L = LEVELS[li], hue = L.hue;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  // background
+  const bg = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, Math.max(W, H) * .75);
+  bg.addColorStop(0, hsl(hue, 40, 9)); bg.addColorStop(1, '#05060c');
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+  // dust
+  for (const d of dust) { if (!reducedMotion) d.y -= d.v * dt * 1000; if (d.y < 0) d.y = 1; const a = .15 + .14 * Math.sin(t * 1.3 + d.p); ctx.fillStyle = hsl(hue, 60, 80, a); ctx.beginPath(); ctx.arc(d.x * W, d.y * H, d.s, 0, 7); ctx.fill(); }
+  // shake
+  let sx = 0, sy = 0; if (shake > 0) { sx = (Math.random() - .5) * 6 * shake; sy = (Math.random() - .5) * 6 * shake; shake = Math.max(0, shake - dt * 4.8); }
+  ctx.translate(ox + sx, oy + sy);
+  if (flip) ctx.transform(0, 1, 1, 0, 0, 0); // transpose: logical (x,y) -> screen (y,x)
+  // board
+  ctx.fillStyle = 'rgba(255,255,255,.025)'; roundRect(-6, -6, cols * cell + 12, rows * cell + 12, 14); ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,.05)'; ctx.lineWidth = 1;
+  for (let x = 0; x <= cols; x++) { ctx.beginPath(); ctx.moveTo(x * cell, 0); ctx.lineTo(x * cell, rows * cell); ctx.stroke(); }
+  for (let y = 0; y <= rows; y++) { ctx.beginPath(); ctx.moveTo(0, y * cell); ctx.lineTo(cols * cell, y * cell); ctx.stroke(); }
+  // static tiles
+  for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
+    const ch = grid[y][x], cx = (x + .5) * cell, cy = (y + .5) * cell;
+    if (ch === '#') wall(x, y);
+    else if (ch === '+') socket(cx, cy, !!placed[x + ',' + y], t);
+  }
+  // beams
+  const core = hsl(hue, 100, 92), glow = hsl(hue, 100, 65);
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  for (const pts of beams) {
+    const path = () => { ctx.beginPath(); pts.forEach(([x, y], i) => i ? ctx.lineTo(x * cell, y * cell) : ctx.moveTo(x * cell, y * cell)); };
+    ctx.shadowBlur = 28; ctx.shadowColor = glow;
+    ctx.strokeStyle = hsl(hue, 100, 60, .25); ctx.lineWidth = cell * .26; path(); ctx.stroke();
+    ctx.strokeStyle = hsl(hue, 100, 70, .55); ctx.lineWidth = cell * .11; path(); ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = core; ctx.lineWidth = cell * .045; path(); ctx.stroke();
+    // travelling motes
+    let len = 0; const segs = [];
+    for (let i = 1; i < pts.length; i++) { const l = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); segs.push([len, l, pts[i - 1], pts[i]]); len += l; }
+    if (len <= 0) continue;
+    const n = Math.max(2, Math.floor(len * 1.2));
+    for (let k = 0; k < n; k++) {
+      const p = ((t * 2.2 + k / n * len) % len);
+      const s = segs.find(sg => p >= sg[0] && p <= sg[0] + sg[1]); if (!s || s[1] <= 0) continue;
+      const u = (p - s[0]) / s[1]; const mx = s[2][0] + (s[3][0] - s[2][0]) * u, my = s[2][1] + (s[3][1] - s[2][1]) * u;
+      ctx.fillStyle = 'rgba(255,255,255,.9)'; ctx.beginPath(); ctx.arc(mx * cell, my * cell, cell * .035, 0, 7); ctx.fill();
+    }
+  }
+  // dynamic tiles
+  for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
+    const ch = at(x, y), cx = (x + .5) * cell, cy = (y + .5) * cell;
+    if (ch === '/' || ch === '\\') mirror(cx, cy, ch, !!placed[x + ',' + y], hue);
+    else if (ch === '*') prism(cx, cy, hue, t);
+    else if (ch === 'O') crystal(cx, cy, lit.has(x + ',' + y), hue, t);
+    else if (DIRS[ch]) emitter(cx, cy, DIRS[ch], hue, t);
+  }
+  // Numbered glass sockets link the board to the large touch controls below it.
+  // Drawn in screen space (transform reset) so labels and markers are never mirrored by the portrait transpose.
+  ctx.save(); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.translate(sx, sy);
+  sockets.forEach(([x,y], index) => {
+    const [cx, cy] = toScreen(x + .5, y + .5);
+    if (keyboardFocus && index === selected && !solved) {
+      ctx.strokeStyle = '#a5ecff'; ctx.lineWidth = 2;
+      roundRect(cx - cell / 2 + 1, cy - cell / 2 + 1, cell - 2, cell - 2, Math.min(6, cell / 4)); ctx.stroke();
+    }
+    const nx = cx + cell * .31, ny = cy + cell * .31;
+    ctx.fillStyle = '#122039'; ctx.strokeStyle = '#a5ecff'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(nx, ny, 7, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#fff'; ctx.font = '10px "Trebuchet MS", sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(String(index + 1), nx, ny + .5);
+  });
+  if (tutorialStep >= 0) {
+    const [x,y] = LESSON[tutorialStep].target, [cx, cy] = toScreen(x + .5, y + .5);
+    const radius = Math.max(15, cell * .55) + (reducedMotion ? 0 : Math.sin(t * 3) * 2);
+    ctx.strokeStyle = '#ffd59a'; ctx.lineWidth = 2; ctx.setLineDash([5,4]);
+    ctx.beginPath(); ctx.arc(cx, cy, radius, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = '#ffd59a'; ctx.beginPath(); ctx.moveTo(cx, cy - radius - 3); ctx.lineTo(cx - 6, cy - radius - 13); ctx.lineTo(cx + 6, cy - radius - 13); ctx.closePath(); ctx.fill();
+  }
+  ctx.restore();
+  // sparks
+  for (let i = sparks.length - 1; i >= 0; i--) {
+    const s = sparks[i]; s.x += s.vx * dt * 1.2; s.y += s.vy * dt * 1.2; s.vy += dt * .6; s.life -= dt * 1.32; if (s.life <= 0) { sparks.splice(i, 1); continue; }
+    ctx.fillStyle = hsl(hue, 100, 80, s.life); ctx.beginPath(); ctx.arc(s.x * cell, s.y * cell, s.r * s.life, 0, 7); ctx.fill();
+  }
+}
+function roundRect(x, y, w, h, r) { r = Math.max(0, Math.min(r, w / 2, h / 2)); ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+function wall(x, y) {
+  const p = cell * .08; const g = ctx.createLinearGradient(x * cell, y * cell, x * cell, (y + 1) * cell);
+  g.addColorStop(0, '#2a2f45'); g.addColorStop(1, '#141828');
+  ctx.fillStyle = g; roundRect(x * cell + p, y * cell + p, cell - 2 * p, cell - 2 * p, cell * .14); ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,.08)'; ctx.lineWidth = 1; ctx.stroke();
+}
+function socket(cx, cy, filled, t) {
+  if (filled) return;
+  ctx.save(); ctx.setLineDash([3, 4]); ctx.lineDashOffset = -t * 8;
+  ctx.strokeStyle = 'rgba(255,255,255,' + (.18 + .1 * Math.sin(t * 2)) + ')'; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.arc(cx, cy, cell * .3, 0, 7); ctx.stroke(); ctx.restore();
+  ctx.fillStyle = 'rgba(255,255,255,.25)'; ctx.beginPath(); ctx.arc(cx, cy, 1.6, 0, 7); ctx.fill();
+}
+function mirror(cx, cy, ch, mine, hue) {
+  ctx.save(); ctx.translate(cx, cy); ctx.rotate(ch === '/' ? -Math.PI / 4 : Math.PI / 4);
+  const w = cell * .78, h = cell * .13;
+  const g = ctx.createLinearGradient(0, -h, 0, h);
+  if (mine) { g.addColorStop(0, hsl(hue, 80, 92)); g.addColorStop(.5, hsl(hue, 70, 70)); g.addColorStop(1, hsl(hue, 60, 45)); }
+  else { g.addColorStop(0, '#d8dbe6'); g.addColorStop(.5, '#8b90a8'); g.addColorStop(1, '#4b506a'); }
+  ctx.shadowBlur = mine ? 16 : 6; ctx.shadowColor = mine ? hsl(hue, 100, 70, .8) : 'rgba(255,255,255,.3)';
+  ctx.fillStyle = g; roundRect(-w / 2, -h / 2, w, h, h / 2); ctx.fill();
+  ctx.shadowBlur = 0; ctx.fillStyle = 'rgba(255,255,255,.75)'; roundRect(-w / 2 + 4, -h / 2 + 1.5, w * .45, h * .28, 2); ctx.fill();
+  if (!mine) {
+    ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 1; roundRect(-w / 2, -h / 2, w, h, h / 2); ctx.stroke();
+    ctx.fillStyle = '#fff'; for (const end of [-1,1]) { ctx.beginPath(); ctx.arc(end * w * .35, 0, Math.max(1, cell * .025), 0, 7); ctx.fill(); }
+  }
+  ctx.restore();
+}
+function prism(cx, cy, hue, t) {
+  const r = cell * .3; ctx.save(); ctx.translate(cx, cy); ctx.rotate(t * .4);
+  ctx.shadowBlur = 20; ctx.shadowColor = 'rgba(255,255,255,.6)';
+  const g = ctx.createLinearGradient(-r, -r, r, r);
+  g.addColorStop(0, hsl((hue + 300) % 360, 90, 80)); g.addColorStop(.5, '#ffffff'); g.addColorStop(1, hsl((hue + 60) % 360, 90, 75));
+  ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(0, -r); ctx.lineTo(r, 0); ctx.lineTo(0, r); ctx.lineTo(-r, 0); ctx.closePath(); ctx.fill();
+  ctx.shadowBlur = 0; ctx.strokeStyle = 'rgba(255,255,255,.8)'; ctx.lineWidth = 1.2; ctx.stroke();
+  ctx.restore();
+}
+function crystal(cx, cy, on, hue, t) {
+  const r = cell * .3, pulse = on ? 1 + .06 * Math.sin(t * 5) : 1;
+  ctx.save(); ctx.translate(cx, cy);
+  if (on) { ctx.shadowBlur = 36; ctx.shadowColor = hsl(hue, 100, 70); const halo = ctx.createRadialGradient(0, 0, 0, 0, 0, r * 2.2); halo.addColorStop(0, hsl(hue, 100, 80, .35)); halo.addColorStop(1, hsl(hue, 100, 80, 0)); ctx.fillStyle = halo; ctx.beginPath(); ctx.arc(0, 0, r * 2.2, 0, 7); ctx.fill(); }
+  ctx.rotate(Math.PI / 6);
+  const g = ctx.createLinearGradient(-r, -r, r, r);
+  if (on) { g.addColorStop(0, '#ffffff'); g.addColorStop(.5, hsl(hue, 100, 78)); g.addColorStop(1, hsl(hue, 90, 55)); }
+  else { g.addColorStop(0, '#526288'); g.addColorStop(1, '#28364f'); }
+  ctx.fillStyle = g; ctx.beginPath();
+  for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3; ctx.lineTo(Math.cos(a) * r * pulse, Math.sin(a) * r * pulse); }
+  ctx.closePath(); ctx.fill();
+  ctx.shadowBlur = 0; ctx.strokeStyle = on ? 'rgba(255,255,255,.9)' : 'rgba(255,255,255,.22)'; ctx.lineWidth = 1.4; ctx.stroke();
+  ctx.strokeStyle = on ? 'rgba(255,255,255,.55)' : 'rgba(255,255,255,.1)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(0, -r * pulse); ctx.lineTo(0, r * pulse); ctx.moveTo(-r * .86 * pulse, -r * .5 * pulse); ctx.lineTo(r * .86 * pulse, r * .5 * pulse); ctx.stroke();
+  if (on) for (let i = 0; i < 3; i++) { const rr = r * (1.2 + ((t * .8 + i / 3) % 1) * 1.4), a = 1 - ((t * .8 + i / 3) % 1); ctx.strokeStyle = hsl(hue, 100, 85, a * .5); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(0, 0, rr, 0, 7); ctx.stroke(); }
+  ctx.restore();
+}
+function emitter(cx, cy, d, hue, t) {
+  ctx.save(); ctx.translate(cx, cy); ctx.rotate(Math.atan2(d[1], d[0]));
+  const r = cell * .3;
+  ctx.shadowBlur = 18; ctx.shadowColor = hsl(hue, 100, 70, .7);
+  const g = ctx.createLinearGradient(-r, 0, r, 0); g.addColorStop(0, '#2b3050'); g.addColorStop(1, '#4d5680');
+  ctx.fillStyle = g; roundRect(-r, -r * .8, r * 1.7, r * 1.6, r * .3); ctx.fill();
+  ctx.shadowBlur = 0; ctx.strokeStyle = 'rgba(255,255,255,.25)'; ctx.lineWidth = 1; ctx.stroke();
+  const lg = ctx.createRadialGradient(r * .55, 0, 0, r * .55, 0, r * .55); lg.addColorStop(0, '#fff'); lg.addColorStop(.5, hsl(hue, 100, 75)); lg.addColorStop(1, hsl(hue, 100, 60, 0));
+  ctx.fillStyle = lg; ctx.beginPath(); ctx.arc(r * .55, 0, r * .55 * (1 + .08 * Math.sin(t * 6)), 0, 7); ctx.fill();
+  ctx.restore();
+}
+
+// ───────────────────────── go ─────────────────────────
+let initialLevel = 0;
+try { const linked = /^#l(\d+)$/.exec(window.location.hash); if (linked) initialLevel = Math.max(0, Math.min(LEVELS.length - 1, Number(linked[1]) - 1)); } catch (_) {}
+soundLabel(); load(initialLevel, {tutorial:initialLevel === 0 && !lessonSeen}); requestAnimationFrame(draw);
+})();
+</script>
+</body>
+</html>
